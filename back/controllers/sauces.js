@@ -117,7 +117,7 @@ exports.getAllSauce = (req, res, next) => {
             }
         }
     })
-    sauce.updateOne({_id: req.params.id}, {...sauceObject, like: Sauce.like, usersLiked: Sauce.usersLiked, usersDisliked: Sauce.sauceUsersDisliked})
+    Sauce.updateOne({_id: req.params.id}, {...sauceObject, like: Sauce.like, usersLiked: Sauce.usersLiked, usersDisliked: Sauce.sauceUsersDisliked})
         .then(() => { res.status(200).json({message: 'Objet Supprimé'})})
         .catch(error => res.status(401).json({error}));
 };
