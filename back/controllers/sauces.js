@@ -15,7 +15,7 @@ exports.createSauce = (req, res, next) => {
     sauce.save()
     .then(() => { res.status(201).json({message: 'Objet enregistré !'})})
     .catch(error => { res.status(400).json( { error })})
- };
+};
 
 exports.modifySauce = (req, res, next) => {
     const sauceObject = req.file ? {
@@ -53,71 +53,86 @@ exports.deleteSauce = (req, res, next) => {
    .catch( error => res.status(500).json({error}) );
 };
 
-exports.getOneSauce = (req, res, next) => {       
+exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
     .then(sauce => res.status(200).json(sauce))
-    .catch(error => res.status(404).json({error}));
+    .catch(error => res.status(403).json({error}));
 };
 
 exports.getAllSauce = (req, res, next) => {
     Sauce.find()
      .then(sauce => res.status(200).json(sauce))
      .catch(error => res.status(400).json({error}));
- };
+};
 
- exports.likeSauce = (req, res, next) => {
-    const like = req.body.like;
+exports.likeSauce = (req, res, next) => {
+    const newLike = req.body.like;
     const user = req.body.userId;
-
     Sauce.findOne({_id: req.params.id})
     .then(sauce => {
-        const sauceUsersLiked = Sauce.usersLiked;
-        const sauceUsersDisliked = Sauce.usersDisliked;
-        const foundUserLiked = sauceUsersLiked.findIndex(u == user);
-        const foundUserDisliked = sauceUsersDisliked.findIndex(u == user);
-        if(like == -1) {
-            if (sauceUsersDisliked[foundUserDisliked] == user) {
-                res.status(401).json({message: 'Non-autorisé'});
-            }
-            else if(foundUserLiked){
-                Sauce.like -=1;
-                Sauce.usersLiked.splice(foundUserLiked,1);
-                Sauce.usersDisliked.push(user);
-            }
-            else {
-                Sauce.usersDisliked.push(user);
-            }
+        const sauceUsersLiked = sauce.usersLiked;
+        const sauceUsersDisliked = sauce.usersDisliked;
+        const foundUserLiked = sauceUsersLiked.findIndex(u => u == user);
+        const foundUserDisliked = sauceUsersDisliked.findIndex(u =>u == user);
+        switch (newLike) {
+            case -1 :
+                if (foundUserDisliked !== -1) {
+                    sauce.usersDisliked.splice(foundUserDisliked,1);
+                    Sauce.updateOne({_id: req.params.id}, {dislikes: sauce.disllikes -=1, usersDsiliked: sauce.usersDisliked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                else if(foundUserLiked === 1){
+                    sauce.usersLiked.splice(foundUserLiked,1);
+                    sauce.usersDisliked.push(user);
+                    Sauce.updateOne({_id: req.params.id}, {likes: sauce.likes -=1, dislikes: sauce.dislikes +=1, usersLiked: sauce.usersLiked, usersDisliked: sauce.usersDisliked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                else if ((foundUserLiked === -1) || (foundUserDisliked === -1)) {
+                    sauce.usersDisliked.push(user);
+                    Sauce.updateOne({_id: req.params.id}, {dislikes: sauce.dislikes +=1, usersDisliked: sauce.usersDisliked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                break;
+            case 0 :
+                if(foundUserLiked !== -1){
+                    sauce.usersLiked.splice(foundUserLiked,1);
+                    Sauce.updateOne({_id: req.params.id}, {likes: sauce.likes -=1, usersLiked: sauce.usersLiked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                else if(foundUserDisliked !== -1){
+                    sauce.usersDisliked.splice(foundUserDisliked,1);
+                    Sauce.updateOne({_id: req.params.id}, {dislikes: sauce.dislikes -=1, usersDisliked: sauce.usersDisliked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));                                                                
+                    console.log(sauce);                
+                }
+                break;
+            case 1 :
+                if (foundUserLiked !== -1) {
+                    sauce.usersLiked.splice(foundUserLiked,1);
+                    Sauce.updateOne({_id: req.params.id}, {likes: sauce.likes -=1, usersLiked: sauce.usersLiked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                else if(foundUserDisliked === 1){
+                    sauce.usersDisliked.splice(foundUserDisliked,1);
+                    sauce.usersLiked.push(user);
+                    Sauce.updateOne({_id: req.params.id}, {likes: sauce.likes +=1, dislikes: sauce.dislikes -=1, usersLiked: sauce.usersLiked, usersDisliked: sauce.usersDisliked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                else if ((foundUserLiked === -1) || (foundUserDisliked == -1)) {
+                    sauce.usersLiked.push(user);
+                    Sauce.updateOne({_id: req.params.id}, {likes: sauce.likes +=1, usersLiked: sauce.usersLiked})
+                    .then(() => { res.status(200).json({message: 'Objet Modifié'})})
+                    .catch(error => res.status(401).json({error}));
+                }
+                break;
         }
-
-        if(like == 0) {
-            if ((sauceUsersDisliked[foundUserDisliked] != user) || (sauceUsersLiked[foundUserLiked] != user)) {
-                res.status(401).json({message: 'Non-autorisé'});
-            }
-            if(foundUserLiked){
-                Sauce.like -=1;
-                Sauce.usersLiked.splice(foundUserLiked,1);
-            }
-            if(foundUserDisliked){
-                Sauce.like +=1;
-                Sauce.usersLiked.splice(foundUserLiked,1);
-            }
-        }
-        if(like == 1) {
-            console.log('coucou');
-            if (sauceUsersLiked[foundUserLiked] == user) {
-                res.status(401).json({message: 'Non-autorisé'});
-            }
-            else if(foundUserDisliked){
-                Sauce.like +=1;
-                Sauce.usersDisliked.splice(foundUserLiked,1);
-                Sauce.usersLiked.push(user);
-            }
-            else {
-                Sauce.usersLiked.push(user);
-            }
-        }
-    })
-    Sauce.updateOne({_id: req.params.id}, {...sauceObject, like: Sauce.like, usersLiked: Sauce.usersLiked, usersDisliked: Sauce.sauceUsersDisliked})
-        .then(() => { res.status(200).json({message: 'Objet Supprimé'})})
-        .catch(error => res.status(401).json({error}));
+    })    
+    .catch(error => res.status(401).json({error}));
 };
