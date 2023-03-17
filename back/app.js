@@ -5,8 +5,9 @@ const path = require('path');
 const sauceRoutes = require('./routes/sauces');
 const userRoutes = require('./routes/user');
 const bodyParser = require('body-parser');
+const dotenv= require('dotenv').config();
 
-mongoose.connect('mongodb+srv://quentin:2b3BEwlyFfgTMvLV@cluster0.xyviffk.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PWD}@${process.env.DB_URL}/?retryWrites=true&w=majority`,
 { useNewUrlParser: true,
   useUnifiedTopology: true })
 .then(() => console.log('Connexion à MongoDB réussie !'))

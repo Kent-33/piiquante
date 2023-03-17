@@ -24,11 +24,15 @@ exports.modifySauce = (req, res, next) => {
     } : { ...req.body };
     delete sauceObject._userId;
     Sauce.findOne({_id: req.params.id})
-    .then((sauce) => {
-        if (sauce.userId != req.auth.userId) {
+    .then((sauce) => {   
+        if (sauce.userId != req.auth.userId) {        
             res.status(401).json({message: 'Non-autorisé'});
-        } else {
-            sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
+        } else {            
+            if (req.file) {
+                const filename = sauce.imageUrl.split('/images/')[1];
+                fs.unlink(`./images/${filename}`, () => {});
+            }
+            Sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
             .then(() => res.status(200).json({message: 'Objet modifié'}))
             .catch(error => res.status(401).json({error}));
         }
@@ -42,8 +46,9 @@ exports.deleteSauce = (req, res, next) => {
         if (sauce.userId != req.auth.userId) {
             res.status(401).json({message: 'Non-autorisé'});
         } else {
-            const filename = sauce.imageUrl.split('/images/')[1];
-            fs.unlink(`images/'${filename}`, () => {
+            const filename = sauce.imageUrl.split('/images/')[1];                                          
+  
+            fs.unlink(`./images/${filename}`, () => {
                 Sauce.deleteOne({_id: req.params.id})
                 .then(() => { res.status(200).json({message: 'Objet Supprimé'})})
                 .catch(error => res.status(401).json({error}));
