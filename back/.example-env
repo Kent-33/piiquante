@@ -1,3 +1,8 @@
+// URL de la BDD MongoDB
 DB_URL = cluster0.xyviffk.mongodb.net
+
+// Utilisatauer de la BDD
 DB_USER = quentin
+
+// Mot de passe de la BDD
 DB_PWD = 2b3BEwlyFfgTMvLV
